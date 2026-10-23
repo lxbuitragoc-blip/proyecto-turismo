@@ -1,0 +1,13 @@
+{
+  "codigo_tour": "TOUR-CARTAGENA-2026-01",
+  "nombre_tour": "Ruta del Sol 5 dias",
+  "ciudad": "Cartagena",
+  "proveedor": "Hotel Dann",
+  "concepto": "alojamiento",
+  "fecha_servicio": "2026-06-15",
+  "fecha_pago": "2026-06-20",
+  "costo": 800,
+  "venta": 1200,
+  "estrellas": 5,
+  "estado": "pagado"
+}
