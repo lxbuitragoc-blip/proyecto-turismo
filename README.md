@@ -1,5 +1,5 @@
 # Proyecto Turismo — Control contable de pagos a proveedores
-Avance Sesion 6 · Ingeniería de Software III
+Avance Sesion 6  Ingeniería de Software III
 ## 1. Descripción del proyecto
 API REST para registrar y consolidar los pagos que una operadora de turismo realiza a sus proveedores (hoteles, transporte, guías, intermediarios) por ciudad y por tour. Calcula automáticamente la comisión del vendedor según la calificación (estrellas) del tour, y expone reportes contables de costo, venta, ganancia y utilidad.
 ## 2. Entidad principal: pagos
@@ -97,7 +97,8 @@ La base de datos data/app.db y la tabla pagos se crean automáticamente al arran
 ### 7.1 Camino feliz — 201 Created
 
 **Petición:**
-```http
+```
+http
 POST /api/pagos
 Content-Type: application/json
 
@@ -144,6 +145,7 @@ Keep-Alive: timeout=5
 ### 7.2 Error de validación — 400 Bad Request
 
 **Petición:**
+```
 http
 POST /api/pagos
 Content-Type: application/json
@@ -181,14 +183,14 @@ Connection: keep-alive
 Keep-Alive: timeout=5
 
 {"error":"El \"codigo_tour\" debe tener entre 3 y 40 caracteres. El campo \"nombre_tour\" es obligatorio. La \"ciudad\" debe tener entre 3 y 80 caracteres. El campo \"proveedor\" es obligatorio. El \"concepto\" debe ser uno de: alojamiento, traslado, alimentacion, guia, intermediario, otro. El campo \"fecha_servicio\" es obligatorio. La \"venta\" no puede ser menor que el \"costo\". Las \"estrellas\" deben ser un entero entre 1 y 5.","status":400}
-
+```
 
 ### 7.3 Recurso no encontrado — 404 Not Found
 
 **Petición:**
-```http
-GET /api/pagos/9999
 ```
+http
+GET /api/pagos/9999
 curl.exe :   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
 En línea: 1 Carácter: 1
 + curl.exe -i http://localhost:3000/api/pagos/9999 2>&1 | Tee-Object -F ...
@@ -214,7 +216,7 @@ Keep-Alive: timeout=5
 
 {"error":"No existe un pago con id 9999.","status":404}
 
-
+```
 ### 7.4 Reportes contables (valor agregado)
 
 **`GET /api/pagos/reportes/por-ciudad`**
