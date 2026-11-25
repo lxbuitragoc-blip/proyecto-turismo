@@ -266,22 +266,17 @@ Keep-Alive: timeout=5
 [{"codigo_tour":"TOUR-CARTAGENA-2026-01","nombre_tour":"Ruta del Sol 5 dias","lineas":1,"costo_total":800,"venta_total":1200,"ganancia_total":400,"comision_total":16,"utilidad_neta":384}]
 
 ```
----
+## 8. Frontend — Sesión 11 (Integración Cliente/Servidor)
 
-## 9. Frontend — Sesión 11 (Integración Cliente/Servidor)
 
 Esta sesión agrega un frontend desacoplado en Vanilla JS que consume la API REST
 del backend. Ambos corren en puertos distintos, por eso el backend tiene
 `app.use(cors())` habilitado en `src/app.js`.
 
-### Paso 1 — Levantar el backend (Terminal 1)
 
-```bash
-# desde la raíz del proyecto
-npm install
-npm run dev
+### 8.1 Estructura del frontend
 
-### 9.1 Estructura del frontend
+```
 frontend/
 ├── index.html # UI: header, formulario, tabla, reportes
 ├── css/
@@ -289,14 +284,14 @@ frontend/
 └── js/
 ├── api.js # Capa única de fetch (GET/POST/PUT/DELETE)
 └── app.js # Estado, render, validaciones y manejo de códigos HTTP
+```
 
-
-### 9.2 Cómo ejecutar backend + frontend simultáneamente
-
+### 8.2 Cómo ejecutar backend + frontend simultáneamente
+```
 Requisitos previos:
 - Node.js 20+
 - Extensión **Live Server** de VS Code (o `npx serve`)
-
+```
 **Paso 1 — Levantar el backend (Terminal 1):**
 
 ```bash
@@ -308,19 +303,18 @@ Salida esperada:
 [DB] Conectado a SQLite en .../data/app.db
 [DB] Tabla "pagos" lista.
 [SERVER] API escuchando en http://localhost:3000
+```
+**Paso 2 — Levantar el frontend (Terminal 2):**
 
-### Paso 2 — Levantar el frontend (Terminal 2):
-
-Opción A — Live Server (recomendada):
-
+```
+Live Server:
 En VS Code, clic derecho sobre frontend/index.html
-
 Selecciona "Open with Live Server"
-
 Se abre en http://127.0.0.1:5500
+```
+### 8.3 Reglas de negocio implementadas
 
-### 9.3 Reglas de negocio implementadas
-
+```
 Validaciones cliente (antes de enviar al servidor): campos obligatorios, longitudes,
 venta ≥ costo, formato YYYY-MM-DD, estrellas 1–5, fecha_pago ≤ fecha_servicio,
 y fecha_pago no futura si el estado es pagado.
@@ -329,11 +323,8 @@ Comisión automática del vendedor según estrellas (calculada en el servidor,
 con preview en el formulario):
 
 5⭐ → 4 % de la ganancia (venta − costo)
-
 4⭐ → 2 %
-
 1–3⭐ → 1 %
-
 Sin estrellas → 0 %
 
 Fecha de pago anterior al tour (fecha_pago ≤ fecha_servicio), porque
@@ -341,9 +332,10 @@ al proveedor se le paga antes de la realización del tour.
 
 Eliminación controlada: solo se eliminan pagos en estado pendiente;
 los demás se anulan con PATCH para conservar histórico contable.
+```
 
-### 9.4 Gestión de respuestas HTTP en la interfaz
-
+### 8.4 Gestión de respuestas HTTP en la interfaz
+```
 Código	Reacción visual
 201 Created	Alerta verde: "Pago creado correctamente"
 200 OK	Alerta verde: "Actualizado correctamente"
@@ -352,7 +344,7 @@ Código	Reacción visual
 404 Not Found	Alerta roja "Recurso no encontrado"
 409 Conflict	Alerta amarilla "Ya existe un pago con esos datos"
 0 (red caída)	Alerta roja "No se pudo conectar con la API"
-
+```
 
 ## 10. Autor
 
