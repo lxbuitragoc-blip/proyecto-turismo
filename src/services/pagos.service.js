@@ -95,17 +95,20 @@ const validarCampos = (datos, { parcial = false, actual = null } = {}) => {
     else limpio.fecha_servicio = v;
   }
 
-  // fecha_pago (opcional; si viene: >= fecha_servicio y no futura)
+  // fecha_pago (opcional; si viene: <= fecha_servicio, porque al proveedor se le paga ANTES del tour)
   const fechaServicioFinal = limpio.fecha_servicio ?? base.fecha_servicio;
   if ('fecha_pago' in datos) {
     if (esVacio(datos.fecha_pago)) {
       limpio.fecha_pago = null;
     } else {
       const v = String(datos.fecha_pago).trim();
-      if (!esFechaISO(v)) errores.push('La "fecha_pago" debe tener formato YYYY-MM-DD.');
-      else if (fechaServicioFinal && v < fechaServicioFinal) errores.push('La "fecha_pago" no puede ser anterior a la "fecha_servicio".');
-      else if (v > hoyISO()) errores.push('La "fecha_pago" no puede ser futura.');
-      else limpio.fecha_pago = v;
+      if (!esFechaISO(v)) {
+        errores.push('La "fecha_pago" debe tener formato YYYY-MM-DD.');
+      } else if (fechaServicioFinal && v > fechaServicioFinal) {
+        errores.push('La "fecha_pago" no puede ser posterior a la "fecha_servicio" (al proveedor se le paga antes del tour).');
+      } else {
+        limpio.fecha_pago = v;
+      }
     }
   }
 
@@ -158,12 +161,14 @@ const validarCampos = (datos, { parcial = false, actual = null } = {}) => {
 
 // Reglas de transición de estado
 const validarTransicion = (estadoActual, estadoNuevo, fechaPago) => {
-  if (!estadoNuevo || estadoNuevo === estadoActual) return;
   if (estadoActual === 'anulado') {
     throw crearError('Un pago anulado no puede modificarse.', 400);
   }
   if (estadoNuevo === 'pagado' && !fechaPago) {
     throw crearError('No se puede marcar como "pagado" sin "fecha_pago".', 400);
+  }
+  if (estadoNuevo === 'pagado' && fechaPago && fechaPago > hoyISO()) {
+    throw crearError('No se puede marcar como "pagado" con una fecha de pago futura.', 400);
   }
   if (estadoActual === 'pagado' && estadoNuevo === 'pendiente') {
     throw crearError('Un pago "pagado" solo puede pasar a "anulado".', 400);
@@ -186,6 +191,10 @@ const crear = async (datos) => {
   const limpio = validarCampos(datos, { parcial: false });
   limpio.estado = limpio.estado || 'pendiente';
 
+    if (limpio.estado === 'pagado' && limpio.fecha_pago && limpio.fecha_pago > hoyISO()) {
+    throw crearError('Un pago "pagado" no puede tener fecha futura.', 400);
+  }
+
   const dup = await repo.findDuplicado(limpio);
   if (dup) throw crearError('Ya existe un pago con el mismo código de tour, ciudad, proveedor, concepto y fecha de servicio.', 409);
 
@@ -207,6 +216,10 @@ const actualizar = async (id, datos) => {
   limpio.estado = limpio.estado ?? actual.estado;
 
   validarTransicion(actual.estado, limpio.estado, limpio.fecha_pago);
+
+    if (limpio.estado === 'pagado' && limpio.fecha_pago && limpio.fecha_pago > hoyISO()) {
+    throw crearError('Un pago "pagado" no puede tener fecha futura.', 400);
+  }
 
   limpio.comision_vendedor = calcularComision(limpio.venta, limpio.costo, limpio.estrellas);
 
@@ -238,6 +251,10 @@ const actualizarParcial = async (id, datos) => {
   };
 
   validarTransicion(actual.estado, fusionado.estado, fusionado.fecha_pago);
+
+    if (fusionado.estado === 'pagado' && fusionado.fecha_pago && fusionado.fecha_pago > hoyISO()) {
+    throw crearError('Un pago "pagado" no puede tener fecha futura.', 400);
+  }
 
   fusionado.comision_vendedor = calcularComision(fusionado.venta, fusionado.costo, fusionado.estrellas);
 

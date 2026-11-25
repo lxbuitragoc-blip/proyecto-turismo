@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagos a Proveedores — Turismo</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <div>
+      <h1>Control Contable de Pagos</h1>
+      <p class="subtitle">Operadora de Turismo · Sesión 11 — Integración Cliente/Servidor</p>
+    </div>
+    <div class="header-status" id="header-status">Verificando conexión...</div>
+  </header>
+
+  <main class="container">
+
+    <!-- Alertas dinámicas -->
+    <div id="alertas" class="alertas" aria-live="polite"></div>
+
+    <!-- Resumen rápido -->
+    <section class="resumen-grid" id="resumen">
+      <div class="resumen-card"><span class="label">Pagos</span><span class="valor" id="r-total">0</span></div>
+      <div class="resumen-card"><span class="label">Costo total</span><span class="valor" id="r-costo">$0</span></div>
+      <div class="resumen-card"><span class="label">Venta total</span><span class="valor" id="r-venta">$0</span></div>
+      <div class="resumen-card"><span class="label">Ganancia</span><span class="valor" id="r-ganancia">$0</span></div>
+      <div class="resumen-card"><span class="label">Comisiones</span><span class="valor" id="r-comision">$0</span></div>
+    </section>
+
+    <!-- Formulario -->
+    <section class="card">
+      <div class="card-header">
+        <h2 id="form-titulo">Registrar nuevo pago</h2>
+        <span id="form-modo" class="badge badge-info">Crear</span>
+      </div>
+
+      <form id="form-pago" novalidate>
+
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label for="codigo_tour">Código del tour *</label>
+            <input type="text" id="codigo_tour" name="codigo_tour" placeholder="TOUR-CARTAGENA-2026-01" minlength="3" maxlength="40">
+          </div>
+
+          <div class="form-group span-2">
+            <label for="nombre_tour">Nombre del tour *</label>
+            <input type="text" id="nombre_tour" name="nombre_tour" placeholder="Ruta del Sol 5 días" minlength="3" maxlength="120">
+          </div>
+
+          <div class="form-group">
+            <label for="ciudad">Ciudad *</label>
+            <input type="text" id="ciudad" name="ciudad" placeholder="Cartagena" minlength="3" maxlength="80">
+          </div>
+
+          <div class="form-group">
+            <label for="proveedor">Proveedor *</label>
+            <input type="text" id="proveedor" name="proveedor" placeholder="Hotel Dann" minlength="3" maxlength="80">
+          </div>
+
+          <div class="form-group">
+            <label for="concepto">Concepto *</label>
+            <select id="concepto" name="concepto">
+              <option value="">— Selecciona —</option>
+              <option value="alojamiento">Alojamiento</option>
+              <option value="traslado">Traslado</option>
+              <option value="alimentacion">Alimentación</option>
+              <option value="guia">Guía</option>
+              <option value="intermediario">Intermediario</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="fecha_servicio">Fecha de servicio *</label>
+            <input type="date" id="fecha_servicio" name="fecha_servicio">
+          </div>
+
+          <div class="form-group">
+            <label for="fecha_pago">Fecha de pago</label>
+            <input type="date" id="fecha_pago" name="fecha_pago">
+            <small class="hint">Opcional. Debe ser ≥ fecha de servicio y no futura.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="costo">Costo (proveedor) *</label>
+            <input type="number" id="costo" name="costo" min="0.01" step="0.01" placeholder="800.00">
+          </div>
+
+          <div class="form-group">
+            <label for="venta">Venta (cliente) *</label>
+            <input type="number" id="venta" name="venta" min="0.01" step="0.01" placeholder="1200.00">
+            <small class="hint">No puede ser menor al costo.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="estrellas">Estrellas</label>
+            <select id="estrellas" name="estrellas">
+              <option value="">Sin calificar</option>
+              <option value="1">1 ⭐</option>
+              <option value="2">2 ⭐</option>
+              <option value="3">3 ⭐</option>
+              <option value="4">4 ⭐</option>
+              <option value="5">5 ⭐</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="estado">Estado</label>
+            <select id="estado" name="estado">
+              <option value="pendiente">Pendiente</option>
+              <option value="pagado">Pagado</option>
+              <option value="anulado">Anulado</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="comision_preview">Comisión vendedor (auto)</label>
+            <input type="text" id="comision_preview" readonly value="$0.00">
+            <small class="hint">Calculada por el servidor: 5⭐=4%, 4⭐=2%, 1–3⭐=1% sobre la ganancia.</small>
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" id="btn-guardar" class="btn btn-primary">Guardar pago</button>
+          <button type="button" id="btn-cancelar" class="btn btn-secondary" hidden>Cancelar edición</button>
+          <button type="button" id="btn-limpiar" class="btn btn-ghost">Limpiar formulario</button>
+        </div>
+
+      </form>
+    </section>
+
+    <!-- Tabla -->
+    <section class="card">
+      <div class="card-header">
+        <h2>Pagos registrados</h2>
+        <button id="btn-refrescar" class="btn btn-secondary btn-sm">↻ Refrescar</button>
+      </div>
+      <div class="table-wrapper">
+        <table id="tabla-pagos">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Código</th>
+              <th>Tour</th>
+              <th>Ciudad</th>
+              <th>Proveedor</th>
+              <th>Concepto</th>
+              <th>F. Servicio</th>
+              <th>F. Pago</th>
+              <th class="num">Costo</th>
+              <th class="num">Venta</th>
+              <th class="num">Ganancia</th>
+              <th class="num">Estrellas</th>
+              <th class="num">Comisión</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-pagos">
+            <tr><td colspan="15" class="empty">Cargando pagos...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Reportes -->
+    <section class="card">
+      <div class="card-header">
+        <h2>Reportes contables</h2>
+        <button id="btn-refrescar-reportes" class="btn btn-secondary btn-sm">↻ Actualizar</button>
+      </div>
+      <div class="reportes-grid">
+
+        <div class="reporte-card">
+          <h3>Pagos por ciudad</h3>
+          <div id="rep-ciudad" class="reporte-content">Cargando...</div>
+        </div>
+
+        <div class="reporte-card">
+          <h3>Proveedores por ciudad</h3>
+          <div id="rep-proveedor" class="reporte-content">Cargando...</div>
+        </div>
+
+        <div class="reporte-card">
+          <h3>Consolidado por tour</h3>
+          <div id="rep-consolidado" class="reporte-content">Cargando...</div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <small>Ingeniería de Software III · Sesión 11 · Cliente desacoplado del backend</small>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
